@@ -7,17 +7,15 @@
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: 'Segoe UI', 'Hiragino Sans', sans-serif; background: #0a0a1a; color: #e0e0e0; overflow: hidden; }
-
   #canvas-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
 
   #sidebar {
-    position: fixed; top: 0; left: 0; width: 320px; height: 100%;
+    position: fixed; top: 0; left: 0; width: 340px; height: 100%;
     background: rgba(15, 15, 30, 0.92); backdrop-filter: blur(12px);
     border-right: 1px solid rgba(255,255,255,0.08);
-    z-index: 10; display: flex; flex-direction: column;
-    transition: transform 0.3s ease;
+    z-index: 10; display: flex; flex-direction: column; transition: transform 0.3s ease;
   }
-  #sidebar.collapsed { transform: translateX(-320px); }
+  #sidebar.collapsed { transform: translateX(-340px); }
   #sidebar-toggle {
     position: fixed; top: 12px; left: 12px; z-index: 20;
     background: rgba(15,15,30,0.85); border: 1px solid rgba(255,255,255,0.12);
@@ -25,12 +23,10 @@
     cursor: pointer; font-size: 18px; display: none; align-items: center; justify-content: center;
   }
   #sidebar.collapsed ~ #sidebar-toggle { display: flex; }
-
   #sidebar-header { padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.08); }
   #sidebar-header h1 { font-size: 18px; font-weight: 600; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
   #btn-collapse { background: none; border: none; color: #888; cursor: pointer; font-size: 18px; padding: 0 4px; }
   #btn-collapse:hover { color: #fff; }
-
   #search-box {
     width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06);
     border: 1px solid rgba(255,255,255,0.1); border-radius: 6px;
@@ -38,12 +34,10 @@
   }
   #search-box:focus { border-color: rgba(100,140,255,0.5); }
   #search-box::placeholder { color: rgba(255,255,255,0.3); }
-
   #filter-bar { padding: 10px 20px; display: flex; gap: 6px; flex-wrap: wrap; border-bottom: 1px solid rgba(255,255,255,0.08); }
   .cat-chip {
     padding: 3px 10px; border-radius: 12px; font-size: 12px; cursor: pointer;
-    border: 1px solid rgba(255,255,255,0.15); background: transparent; color: #aaa;
-    transition: all 0.2s;
+    border: 1px solid rgba(255,255,255,0.15); background: transparent; color: #aaa; transition: all 0.2s;
   }
   .cat-chip.active { color: #fff; border-color: currentColor; }
 
@@ -51,26 +45,27 @@
   #term-list::-webkit-scrollbar { width: 4px; }
   #term-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
 
-  .term-item {
-    padding: 10px 12px; border-radius: 8px; cursor: pointer; margin-bottom: 2px;
-    transition: background 0.15s; display: flex; align-items: center; gap: 8px;
+  .tree-item {
+    padding: 6px 8px; border-radius: 6px; cursor: pointer; margin-bottom: 1px;
+    transition: background 0.15s; display: flex; align-items: center; gap: 6px; font-size: 13px;
   }
-  .term-item:hover { background: rgba(255,255,255,0.06); }
-  .term-item.selected { background: rgba(100,140,255,0.15); }
-  .term-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-  .term-name { font-size: 14px; }
+  .tree-item:hover { background: rgba(255,255,255,0.06); }
+  .tree-item.selected { background: rgba(100,140,255,0.15); }
+  .tree-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .tree-toggle { width: 16px; text-align: center; color: #666; font-size: 11px; flex-shrink: 0; cursor: pointer; user-select: none; }
+  .tree-toggle:hover { color: #ccc; }
+  .tree-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
   #sidebar-footer { padding: 12px 20px; border-top: 1px solid rgba(255,255,255,0.08); }
   #btn-add {
     width: 100%; padding: 8px; background: rgba(80,130,255,0.2); border: 1px solid rgba(80,130,255,0.4);
-    color: #8ab4ff; border-radius: 6px; cursor: pointer; font-size: 14px;
-    transition: background 0.2s;
+    color: #8ab4ff; border-radius: 6px; cursor: pointer; font-size: 14px; transition: background 0.2s;
   }
   #btn-add:hover { background: rgba(80,130,255,0.35); }
 
   #detail-panel {
     position: fixed; top: 50%; right: 40px; transform: translateY(-50%);
-    width: 380px; max-height: 80vh; overflow-y: auto;
+    width: 400px; max-height: 85vh; overflow-y: auto;
     background: rgba(20, 20, 40, 0.92); backdrop-filter: blur(12px);
     border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
     padding: 24px; z-index: 10; display: none;
@@ -78,64 +73,41 @@
   #detail-panel.visible { display: block; }
   #detail-panel::-webkit-scrollbar { width: 4px; }
   #detail-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
-
   .detail-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; margin-top: 16px; }
   .detail-label:first-child { margin-top: 0; }
-
   .detail-field {
     width: 100%; padding: 8px 10px; background: rgba(255,255,255,0.05);
     border: 1px solid rgba(255,255,255,0.08); border-radius: 6px;
     color: #e0e0e0; font-size: 14px; font-family: inherit; outline: none; resize: vertical;
   }
   .detail-field:focus { border-color: rgba(100,140,255,0.5); }
-
-  #detail-category-select {
+  #detail-category-select, #new-category-input, #add-related-select, #add-parent-select {
     width: 100%; padding: 8px 10px; background: rgba(255,255,255,0.05);
     border: 1px solid rgba(255,255,255,0.08); border-radius: 6px;
     color: #e0e0e0; font-size: 14px; outline: none;
   }
-  #new-category-input {
-    width: 100%; padding: 8px 10px; margin-top: 6px; background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.08); border-radius: 6px;
-    color: #e0e0e0; font-size: 13px; outline: none; display: none;
-  }
+  #new-category-input { margin-top: 6px; font-size: 13px; display: none; }
   #new-category-input::placeholder { color: rgba(255,255,255,0.3); }
+  #add-related-select, #add-parent-select { font-size: 12px; margin-top: 6px; padding: 4px 8px; }
 
   .related-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
-  .related-tag {
+  .related-tag, .parent-tag {
     padding: 3px 10px; border-radius: 12px; font-size: 12px;
     background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
     display: flex; align-items: center; gap: 4px; cursor: pointer;
   }
-  .related-tag .remove-rel { cursor: pointer; opacity: 0.5; font-size: 14px; }
-  .related-tag .remove-rel:hover { opacity: 1; }
-
-  #add-related-select {
-    padding: 4px 8px; background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.08); border-radius: 6px;
-    color: #e0e0e0; font-size: 12px; outline: none; margin-top: 6px;
-  }
+  .parent-tag { border-color: rgba(100,200,255,0.3); background: rgba(100,200,255,0.08); }
+  .related-tag .remove-btn, .parent-tag .remove-btn { cursor: pointer; opacity: 0.5; font-size: 14px; }
+  .related-tag .remove-btn:hover, .parent-tag .remove-btn:hover { opacity: 1; }
 
   .detail-actions { display: flex; gap: 8px; margin-top: 20px; }
-  .btn-save {
-    flex: 1; padding: 8px; background: rgba(60,180,100,0.2); border: 1px solid rgba(60,180,100,0.4);
-    color: #6fd89a; border-radius: 6px; cursor: pointer; font-size: 13px;
-  }
+  .btn-save { flex: 1; padding: 8px; background: rgba(60,180,100,0.2); border: 1px solid rgba(60,180,100,0.4); color: #6fd89a; border-radius: 6px; cursor: pointer; font-size: 13px; }
   .btn-save:hover { background: rgba(60,180,100,0.35); }
-  .btn-delete {
-    padding: 8px 14px; background: rgba(220,60,60,0.15); border: 1px solid rgba(220,60,60,0.3);
-    color: #e07070; border-radius: 6px; cursor: pointer; font-size: 13px;
-  }
+  .btn-delete { padding: 8px 14px; background: rgba(220,60,60,0.15); border: 1px solid rgba(220,60,60,0.3); color: #e07070; border-radius: 6px; cursor: pointer; font-size: 13px; }
   .btn-delete:hover { background: rgba(220,60,60,0.3); }
-  .btn-close-detail {
-    padding: 8px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
-    color: #aaa; border-radius: 6px; cursor: pointer; font-size: 13px;
-  }
+  .btn-close-detail { padding: 8px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #aaa; border-radius: 6px; cursor: pointer; font-size: 13px; }
 
-  #toolbar {
-    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-    display: flex; gap: 8px; z-index: 10; align-items: center;
-  }
+  #toolbar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 10; align-items: center; }
   .toolbar-btn {
     padding: 8px 16px; background: rgba(15,15,30,0.85); backdrop-filter: blur(8px);
     border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;
@@ -143,41 +115,17 @@
   }
   .toolbar-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
 
-  #toast {
-    position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%);
-    padding: 8px 20px; background: rgba(60,180,100,0.9); color: #fff;
-    border-radius: 8px; font-size: 13px; z-index: 30;
-    opacity: 0; transition: opacity 0.3s; pointer-events: none;
-  }
+  #toast { position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%); padding: 8px 20px; background: rgba(60,180,100,0.9); color: #fff; border-radius: 8px; font-size: 13px; z-index: 30; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
   #toast.show { opacity: 1; }
-
-  #loading {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: #0a0a1a; z-index: 100; display: flex;
-    align-items: center; justify-content: center; font-size: 16px; color: #888;
-  }
-
-  #sync-banner {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 50;
-    background: rgba(240,180,40,0.95); color: #1a1a1a; padding: 10px 20px;
-    font-size: 13px; display: none; align-items: center; justify-content: center; gap: 12px;
-  }
-  #sync-banner button {
-    padding: 4px 12px; border-radius: 4px; border: 1px solid #1a1a1a; background: transparent;
-    color: #1a1a1a; cursor: pointer; font-size: 12px;
-  }
+  #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0a0a1a; z-index: 100; display: flex; align-items: center; justify-content: center; font-size: 16px; color: #888; }
+  #sync-banner { position: fixed; top: 0; left: 0; right: 0; z-index: 50; background: rgba(240,180,40,0.95); color: #1a1a1a; padding: 10px 20px; font-size: 13px; display: none; align-items: center; justify-content: center; gap: 12px; }
+  #sync-banner button { padding: 4px 12px; border-radius: 4px; border: 1px solid #1a1a1a; background: transparent; color: #1a1a1a; cursor: pointer; font-size: 12px; }
   #sync-banner button:hover { background: rgba(0,0,0,0.1); }
-
-  #unsaved-dot {
-    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
-    background: #f0b428; margin-left: 6px; vertical-align: middle;
-    visibility: hidden;
-  }
+  #unsaved-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #f0b428; margin-left: 6px; vertical-align: middle; visibility: hidden; }
   #unsaved-dot.visible { visibility: visible; }
 </style>
 </head>
 <body>
-
 <div id="loading">Three.js を読み込み中...</div>
 <div id="sync-banner">
   <span>ブラウザに未保存の編集があります。どちらのデータを使いますか？</span>
@@ -207,6 +155,9 @@
   <div class="detail-label">カテゴリ</div>
   <select id="detail-category-select"></select>
   <input type="text" id="new-category-input" placeholder="新しいカテゴリ名を入力">
+  <div class="detail-label">親用語</div>
+  <div class="related-tags" id="parent-tags"></div>
+  <select id="add-parent-select"><option value="">+ 親用語を追加</option></select>
   <div class="detail-label">関連用語</div>
   <div class="related-tags" id="related-tags"></div>
   <select id="add-related-select"><option value="">+ 関連用語を追加</option></select>
@@ -232,12 +183,12 @@
 <script type="application/json" id="embedded-data">
 {
   "terms": [
-    { "id": "t001", "name": "SLA", "definition": "Service Level Agreement。サービス提供者と利用者間で合意するサービス品質の基準。", "category": "契約", "related": ["t002", "t003"] },
-    { "id": "t002", "name": "KPI", "definition": "Key Performance Indicator。目標達成度を測定するための重要業績評価指標。", "category": "経営", "related": ["t003", "t004"] },
-    { "id": "t003", "name": "SLO", "definition": "Service Level Objective。SLA内で定める具体的なサービス目標値。", "category": "契約", "related": ["t001"] },
-    { "id": "t004", "name": "ROI", "definition": "Return on Investment。投資に対する利益率を示す指標。", "category": "経営", "related": ["t002"] },
-    { "id": "t005", "name": "要件定義", "definition": "システム開発において、必要な機能や性能を明確化するプロセス。", "category": "開発プロセス", "related": ["t006"] },
-    { "id": "t006", "name": "受入テスト", "definition": "発注者がシステムの要件充足を確認するためのテスト。", "category": "開発プロセス", "related": ["t005", "t001"] }
+    { "id": "t001", "name": "SLA", "definition": "Service Level Agreement。サービス提供者と利用者間で合意するサービス品質の基準。", "category": "契約", "parents": [], "related": ["t002", "t003"] },
+    { "id": "t002", "name": "KPI", "definition": "Key Performance Indicator。目標達成度を測定するための重要業績評価指標。", "category": "経営", "parents": [], "related": ["t003", "t004"] },
+    { "id": "t003", "name": "SLO", "definition": "Service Level Objective。SLA内で定める具体的なサービス目標値。", "category": "契約", "parents": ["t001"], "related": [] },
+    { "id": "t004", "name": "ROI", "definition": "Return on Investment。投資に対する利益率を示す指標。", "category": "経営", "parents": [], "related": ["t002"] },
+    { "id": "t005", "name": "要件定義", "definition": "システム開発において、必要な機能や性能を明確化するプロセス。", "category": "開発プロセス", "parents": [], "related": ["t006"] },
+    { "id": "t006", "name": "受入テスト", "definition": "発注者がシステムの要件充足を確認するためのテスト。", "category": "開発プロセス", "parents": [], "related": ["t005", "t001"] }
   ],
   "categories": ["契約", "経営", "開発プロセス"]
 }
@@ -248,42 +199,30 @@
 function loadScript(url) {
   return new Promise(function(resolve, reject) {
     var s = document.createElement('script');
-    s.src = url;
-    s.onload = resolve;
+    s.src = url; s.onload = resolve;
     s.onerror = function() { reject(new Error('Failed to load: ' + url)); };
     document.head.appendChild(s);
   });
 }
-
 loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js')
-  .then(function() {
-    return loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js');
-  })
-  .then(function() {
-    return loadScript('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js');
-  })
-  .then(function() {
-    document.getElementById('loading').style.display = 'none';
-    initApp();
-  })
-  .catch(function(err) {
-    document.getElementById('loading').textContent = 'Three.js の読み込みに失敗しました。インターネット接続を確認してください。';
-    console.error(err);
-  });
+  .then(function() { return loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js'); })
+  .then(function() { return loadScript('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js'); })
+  .then(function() { document.getElementById('loading').style.display = 'none'; initApp(); })
+  .catch(function(err) { document.getElementById('loading').textContent = 'ライブラリの読み込みに失敗しました。インターネット接続を確認してください。'; console.error(err); });
 
 function initApp() {
 
 var STORAGE_KEY = 'glossary_data';
 var STORAGE_VERSION_KEY = 'glossary_version';
 var PALETTE = [0x648cff, 0xff6e6e, 0x5ed89a, 0xf0c040, 0xc084fc, 0x40d0d0, 0xff8f40, 0xe06090, 0x80d040, 0x60a0ff];
+var collapsedNodes = {}; // ツリー折りたたみ状態
 
 function categoryColor(cat, categories) {
   var idx = categories.indexOf(cat);
-  if (idx < 0) idx = 0;
-  return PALETTE[idx % PALETTE.length];
+  return PALETTE[(idx < 0 ? 0 : idx) % PALETTE.length];
 }
 
-// --- データバリデーション ---
+// --- バリデーション ---
 function validateData(obj) {
   if (!obj || !Array.isArray(obj.terms)) return null;
   var valid = { terms: [], categories: [] };
@@ -295,6 +234,7 @@ function validateData(obj) {
       name: (typeof t.name === 'string') ? t.name : '',
       definition: (typeof t.definition === 'string') ? t.definition : '',
       category: (typeof t.category === 'string' && t.category) ? t.category : '未分類',
+      parents: Array.isArray(t.parents) ? t.parents.filter(function(r) { return typeof r === 'string'; }) : [],
       related: Array.isArray(t.related) ? t.related.filter(function(r) { return typeof r === 'string'; }) : []
     };
     valid.terms.push(term);
@@ -318,11 +258,39 @@ function nextIdFrom(terms) {
   return 't' + String(max + 1).padStart(3, '0');
 }
 
+// --- 親子ヘルパー ---
+function getChildren(parentId) {
+  var children = [];
+  for (var i = 0; i < data.terms.length; i++) {
+    if (data.terms[i].parents.indexOf(parentId) !== -1) children.push(data.terms[i]);
+  }
+  return children;
+}
+
+function getAllDescendantIds(id) {
+  var ids = {};
+  var stack = [id];
+  while (stack.length > 0) {
+    var cur = stack.pop();
+    if (ids[cur]) continue;
+    ids[cur] = true;
+    var ch = getChildren(cur);
+    for (var i = 0; i < ch.length; i++) stack.push(ch[i].id);
+  }
+  return ids;
+}
+
+function wouldCreateCycle(childId, newParentId) {
+  // childIdの子孫にnewParentIdがいたら循環
+  var desc = getAllDescendantIds(childId);
+  return !!desc[newParentId];
+}
+
 // --- データ管理 ---
 var data;
 var selectedId = null;
-var savedVersion = 0; // ファイルに保存済みのバージョン
-var currentVersion = 0; // 現在の編集バージョン
+var savedVersion = 0;
+var currentVersion = 0;
 
 function getEmbeddedData() {
   var el = document.getElementById('embedded-data');
@@ -333,169 +301,80 @@ function getEmbeddedData() {
 function loadData() {
   var embedded = validateData(getEmbeddedData());
   var saved = null;
-  try {
-    var raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) saved = validateData(JSON.parse(raw));
-  } catch(e) {}
-
+  try { var raw = localStorage.getItem(STORAGE_KEY); if (raw) saved = validateData(JSON.parse(raw)); } catch(e) {}
   var savedVer = parseInt(localStorage.getItem(STORAGE_VERSION_KEY), 10) || 0;
-
   if (saved && embedded) {
-    var embeddedStr = JSON.stringify(embedded);
-    var savedStr = JSON.stringify(saved);
-    if (embeddedStr !== savedStr && savedVer > 0) {
-      // 差分あり → ユーザーに選択させる
-      data = saved; // 仮にlocalStorageを使う
-      currentVersion = savedVer;
-      savedVersion = 0;
-      showSyncBanner();
-      return;
+    if (JSON.stringify(embedded) !== JSON.stringify(saved) && savedVer > 0) {
+      data = saved; currentVersion = savedVer; savedVersion = 0; showSyncBanner(); return;
     }
   }
-
-  if (saved) {
-    data = saved;
-    currentVersion = savedVer;
-    savedVersion = savedVer;
-  } else if (embedded) {
-    data = embedded;
-  } else {
-    data = { terms: [], categories: [] };
-  }
+  if (saved) { data = saved; currentVersion = savedVer; savedVersion = savedVer; }
+  else if (embedded) { data = embedded; }
+  else { data = { terms: [], categories: [] }; }
 }
 
 function saveToLocalStorage() {
   currentVersion++;
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    localStorage.setItem(STORAGE_VERSION_KEY, String(currentVersion));
-  } catch(e) {
-    toast('ブラウザの保存領域が不足しています');
-  }
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); localStorage.setItem(STORAGE_VERSION_KEY, String(currentVersion)); }
+  catch(e) { toast('ブラウザの保存領域が不足しています'); }
   updateUnsavedDot();
 }
 
-function showSyncBanner() {
-  document.getElementById('sync-banner').style.display = 'flex';
-}
-
+function showSyncBanner() { document.getElementById('sync-banner').style.display = 'flex'; }
 function updateUnsavedDot() {
   var dot = document.getElementById('unsaved-dot');
-  if (currentVersion > savedVersion) {
-    dot.classList.add('visible');
-  } else {
-    dot.classList.remove('visible');
-  }
+  if (currentVersion > savedVersion) dot.classList.add('visible'); else dot.classList.remove('visible');
 }
-
-function nextId() {
-  return nextIdFrom(data.terms);
-}
-
-function findTerm(id) {
-  for (var i = 0; i < data.terms.length; i++) {
-    if (data.terms[i].id === id) return data.terms[i];
-  }
-  return null;
-}
+function nextId() { return nextIdFrom(data.terms); }
+function findTerm(id) { for (var i = 0; i < data.terms.length; i++) { if (data.terms[i].id === id) return data.terms[i]; } return null; }
 
 // --- Three.js ---
 var container = document.getElementById('canvas-container');
 var scene = new THREE.Scene();
 var camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 500);
 camera.position.set(0, 0, 40);
-
 var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 container.appendChild(renderer.domElement);
-
 var controls = new THREE.OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.dampingFactor = 0.08;
-controls.minDistance = 5;
-controls.maxDistance = 120;
-
+controls.enableDamping = true; controls.dampingFactor = 0.08; controls.minDistance = 5; controls.maxDistance = 120;
 scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-var dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-dirLight.position.set(10, 20, 15);
-scene.add(dirLight);
-
-var nodeGroup = new THREE.Group();
-var edgeGroup = new THREE.Group();
-var labelGroup = new THREE.Group();
-scene.add(edgeGroup);
-scene.add(nodeGroup);
-scene.add(labelGroup);
-
+var dirLight = new THREE.DirectionalLight(0xffffff, 0.8); dirLight.position.set(10, 20, 15); scene.add(dirLight);
+var nodeGroup = new THREE.Group(); var edgeGroup = new THREE.Group(); var labelGroup = new THREE.Group();
+scene.add(edgeGroup); scene.add(nodeGroup); scene.add(labelGroup);
 var nodeMap = new Map();
-var raycaster = new THREE.Raycaster();
-var pointer = new THREE.Vector2();
-var sphereGeo = new THREE.SphereGeometry(0.6, 32, 32); // 共有ジオメトリ
+var raycaster = new THREE.Raycaster(); var pointer = new THREE.Vector2();
+var sphereGeo = new THREE.SphereGeometry(0.6, 32, 32);
 
 function makeTextSprite(text, color) {
-  var canvas = document.createElement('canvas');
-  var ctx = canvas.getContext('2d');
-  var fontSize = 48;
-  ctx.font = 'bold ' + fontSize + 'px "Hiragino Sans", "Segoe UI", sans-serif';
-  var metrics = ctx.measureText(text);
-  var w = metrics.width + 24;
-  var h = fontSize + 20;
-  canvas.width = w;
-  canvas.height = h;
+  var canvas = document.createElement('canvas'); var ctx = canvas.getContext('2d');
+  var fontSize = 48; ctx.font = 'bold ' + fontSize + 'px "Hiragino Sans", "Segoe UI", sans-serif';
+  var w = ctx.measureText(text).width + 24; var h = fontSize + 20;
+  canvas.width = w; canvas.height = h;
   ctx.font = 'bold ' + fontSize + 'px "Hiragino Sans", "Segoe UI", sans-serif';
   ctx.fillStyle = '#' + color.toString(16).padStart(6, '0');
-  ctx.textBaseline = 'middle';
-  ctx.fillText(text, 12, h / 2);
-
-  var tex = new THREE.CanvasTexture(canvas);
-  tex.minFilter = THREE.LinearFilter;
+  ctx.textBaseline = 'middle'; ctx.fillText(text, 12, h / 2);
+  var tex = new THREE.CanvasTexture(canvas); tex.minFilter = THREE.LinearFilter;
   var mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
-  var sprite = new THREE.Sprite(mat);
-  sprite.scale.set(w / 80, h / 80, 1);
-  return sprite;
+  var sprite = new THREE.Sprite(mat); sprite.scale.set(w / 80, h / 80, 1); return sprite;
 }
 
-// --- 安定レイアウト（シード付きハッシュで決定的配置）---
-function hashStr(s) {
-  var h = 0;
-  for (var i = 0; i < s.length; i++) {
-    h = ((h << 5) - h + s.charCodeAt(i)) | 0;
-  }
-  return h;
-}
-
-function seededRandom(seed) {
-  var x = Math.sin(seed) * 10000;
-  return x - Math.floor(x);
-}
+function hashStr(s) { var h = 0; for (var i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0; return h; }
+function seededRandom(seed) { var x = Math.sin(seed) * 10000; return x - Math.floor(x); }
 
 function layoutPositions(terms) {
   var groups = {};
-  for (var i = 0; i < terms.length; i++) {
-    var t = terms[i];
-    if (!groups[t.category]) groups[t.category] = [];
-    groups[t.category].push(t);
-  }
-  var catKeys = Object.keys(groups);
-  var positions = {};
+  for (var i = 0; i < terms.length; i++) { var t = terms[i]; if (!groups[t.category]) groups[t.category] = []; groups[t.category].push(t); }
+  var catKeys = Object.keys(groups); var positions = {};
   var catAngleStep = (2 * Math.PI) / Math.max(catKeys.length, 1);
   var clusterRadius = 8 + catKeys.length * 2;
-
   for (var ci = 0; ci < catKeys.length; ci++) {
-    var cat = catKeys[ci];
-    var cx = Math.cos(catAngleStep * ci) * clusterRadius;
-    var cz = Math.sin(catAngleStep * ci) * clusterRadius;
-    var items = groups[cat];
-    var step = (2 * Math.PI) / Math.max(items.length, 1);
-    var r = 2 + items.length * 0.8;
+    var cx = Math.cos(catAngleStep * ci) * clusterRadius; var cz = Math.sin(catAngleStep * ci) * clusterRadius;
+    var items = groups[catKeys[ci]]; var step = (2 * Math.PI) / Math.max(items.length, 1); var r = 2 + items.length * 0.8;
     for (var j = 0; j < items.length; j++) {
       var seed = hashStr(items[j].id);
-      positions[items[j].id] = new THREE.Vector3(
-        cx + Math.cos(step * j) * r,
-        (seededRandom(seed) - 0.5) * 3,
-        cz + Math.sin(step * j) * r
-      );
+      positions[items[j].id] = new THREE.Vector3(cx + Math.cos(step * j) * r, (seededRandom(seed) - 0.5) * 3, cz + Math.sin(step * j) * r);
     }
   }
   return positions;
@@ -505,194 +384,203 @@ function disposeGroup(group) {
   while (group.children.length > 0) {
     var child = group.children[0];
     if (child.geometry && child.geometry !== sphereGeo) child.geometry.dispose();
-    if (child.material) {
-      if (child.material.map) child.material.map.dispose();
-      child.material.dispose();
-    }
+    if (child.material) { if (child.material.map) child.material.map.dispose(); child.material.dispose(); }
     group.remove(child);
   }
 }
 
-// 表示対象の用語IDセットを返す（選択中→本人+関連、未選択→全件）
 function getVisibleIds() {
-  if (!selectedId) return null; // null = 全件表示
+  if (!selectedId) return null;
   var t = findTerm(selectedId);
   if (!t) return null;
   var ids = {};
   ids[selectedId] = true;
-  for (var i = 0; i < t.related.length; i++) {
-    ids[t.related[i]] = true;
+  // 関連
+  for (var i = 0; i < t.related.length; i++) ids[t.related[i]] = true;
+  // 親（再帰的に上へ）
+  var stack = t.parents.slice();
+  while (stack.length > 0) { var pid = stack.pop(); if (!ids[pid]) { ids[pid] = true; var pt = findTerm(pid); if (pt) { for (var j = 0; j < pt.parents.length; j++) stack.push(pt.parents[j]); } } }
+  // 子（直接の子のみ）
+  for (var i = 0; i < data.terms.length; i++) {
+    if (data.terms[i].parents.indexOf(selectedId) !== -1) ids[data.terms[i].id] = true;
   }
   return ids;
 }
 
 function buildScene() {
-  disposeGroup(nodeGroup);
-  disposeGroup(edgeGroup);
-  disposeGroup(labelGroup);
-  nodeMap.clear();
-
+  disposeGroup(nodeGroup); disposeGroup(edgeGroup); disposeGroup(labelGroup); nodeMap.clear();
   var visibleIds = getVisibleIds();
   var visibleTerms = [];
-  for (var i = 0; i < data.terms.length; i++) {
-    if (!visibleIds || visibleIds[data.terms[i].id]) {
-      visibleTerms.push(data.terms[i]);
-    }
-  }
-
+  for (var i = 0; i < data.terms.length; i++) { if (!visibleIds || visibleIds[data.terms[i].id]) visibleTerms.push(data.terms[i]); }
   var positions = layoutPositions(visibleTerms);
 
   for (var i = 0; i < visibleTerms.length; i++) {
-    var t = visibleTerms[i];
-    var col = categoryColor(t.category, data.categories);
+    var t = visibleTerms[i]; var col = categoryColor(t.category, data.categories);
     var isSelected = (t.id === selectedId);
-    var mat = new THREE.MeshStandardMaterial({
-      color: col, emissive: col,
-      emissiveIntensity: isSelected ? 0.8 : 0.25,
-      roughness: 0.4, metalness: 0.3
-    });
+    var mat = new THREE.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: isSelected ? 0.8 : 0.25, roughness: 0.4, metalness: 0.3 });
     var mesh = new THREE.Mesh(sphereGeo, mat);
     var pos = positions[t.id] || new THREE.Vector3(0, 0, 0);
-    mesh.position.copy(pos);
-    mesh.userData = { id: t.id };
+    mesh.position.copy(pos); mesh.userData = { id: t.id };
     if (isSelected) mesh.scale.setScalar(1.4);
     nodeGroup.add(mesh);
-
-    var label = makeTextSprite(t.name, col);
-    label.position.copy(pos);
-    label.position.y += 1.1;
-    labelGroup.add(label);
-
+    var label = makeTextSprite(t.name, col); label.position.copy(pos); label.position.y += 1.1; labelGroup.add(label);
     nodeMap.set(t.id, { mesh: mesh, label: label, position: pos });
   }
 
   var drawn = {};
   for (var i = 0; i < visibleTerms.length; i++) {
     var t = visibleTerms[i];
+    // 親子線（実線・太め・水色）
+    for (var p = 0; p < t.parents.length; p++) {
+      var pid = t.parents[p];
+      if (visibleIds && !visibleIds[pid]) continue;
+      var key = 'p:' + [t.id, pid].sort().join('-');
+      if (drawn[key]) continue; drawn[key] = true;
+      var a = positions[t.id]; var b = positions[pid];
+      if (!a || !b) continue;
+      var lineGeo = new THREE.BufferGeometry().setFromPoints([a, b]);
+      var lineMat = new THREE.LineBasicMaterial({ color: 0x64d0ff, transparent: true, opacity: 0.5, linewidth: 2 });
+      edgeGroup.add(new THREE.Line(lineGeo, lineMat));
+    }
+    // 関連線（細め・白）
     for (var j = 0; j < t.related.length; j++) {
       var rid = t.related[j];
       if (visibleIds && !visibleIds[rid]) continue;
-      var key = [t.id, rid].sort().join('-');
-      if (drawn[key]) continue;
-      drawn[key] = true;
-      var a = positions[t.id];
-      var b = positions[rid];
+      var key = 'r:' + [t.id, rid].sort().join('-');
+      if (drawn[key]) continue; drawn[key] = true;
+      var a = positions[t.id]; var b = positions[rid];
       if (!a || !b) continue;
       var lineGeo = new THREE.BufferGeometry().setFromPoints([a, b]);
-      var lineMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.15 });
+      var lineMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.12 });
       edgeGroup.add(new THREE.Line(lineGeo, lineMat));
     }
   }
 }
 
 // --- UI ---
-function esc(s) {
-  var d = document.createElement('div');
-  d.textContent = s;
-  return d.innerHTML;
-}
-
-function escAttr(s) {
-  return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
+function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function escAttr(s) { return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 function renderCategoryFilter() {
-  var bar = document.getElementById('filter-bar');
-  bar.innerHTML = '';
-  var allChip = document.createElement('span');
-  allChip.className = 'cat-chip active';
-  allChip.textContent = 'すべて';
-  allChip.setAttribute('data-cat', '');
-  bar.appendChild(allChip);
-
+  var bar = document.getElementById('filter-bar'); bar.innerHTML = '';
+  var allChip = document.createElement('span'); allChip.className = 'cat-chip active'; allChip.textContent = 'すべて'; allChip.setAttribute('data-cat', ''); bar.appendChild(allChip);
   for (var i = 0; i < data.categories.length; i++) {
-    var cat = data.categories[i];
-    var chip = document.createElement('span');
-    chip.className = 'cat-chip';
-    chip.textContent = cat;
-    chip.setAttribute('data-cat', cat);
-    chip.style.color = '#' + categoryColor(cat, data.categories).toString(16).padStart(6, '0');
+    var chip = document.createElement('span'); chip.className = 'cat-chip'; chip.textContent = data.categories[i];
+    chip.setAttribute('data-cat', data.categories[i]);
+    chip.style.color = '#' + categoryColor(data.categories[i], data.categories).toString(16).padStart(6, '0');
     bar.appendChild(chip);
   }
-
   bar.onclick = function(e) {
-    var chip = e.target;
-    while (chip && !chip.classList.contains('cat-chip')) chip = chip.parentElement;
-    if (!chip) return;
-    var chips = bar.querySelectorAll('.cat-chip');
-    for (var i = 0; i < chips.length; i++) chips[i].classList.remove('active');
-    chip.classList.add('active');
-    renderTermList();
+    var chip = e.target; while (chip && !chip.classList.contains('cat-chip')) chip = chip.parentElement; if (!chip) return;
+    var chips = bar.querySelectorAll('.cat-chip'); for (var i = 0; i < chips.length; i++) chips[i].classList.remove('active');
+    chip.classList.add('active'); renderTermList();
   };
 }
 
-function getActiveCategory() {
-  var active = document.querySelector('.cat-chip.active');
-  return active ? (active.getAttribute('data-cat') || '') : '';
-}
+function getActiveCategory() { var a = document.querySelector('.cat-chip.active'); return a ? (a.getAttribute('data-cat') || '') : ''; }
+function getSearchQuery() { return document.getElementById('search-box').value.trim().toLowerCase(); }
 
-function getSearchQuery() {
-  return document.getElementById('search-box').value.trim().toLowerCase();
-}
-
-function filteredTerms() {
-  var cat = getActiveCategory();
-  var q = getSearchQuery();
-  var result = [];
+function filteredTermIds() {
+  var cat = getActiveCategory(); var q = getSearchQuery(); var ids = {};
   for (var i = 0; i < data.terms.length; i++) {
     var t = data.terms[i];
     if (cat && t.category !== cat) continue;
     if (q && t.name.toLowerCase().indexOf(q) === -1 && t.definition.toLowerCase().indexOf(q) === -1) continue;
-    result.push(t);
+    ids[t.id] = true;
   }
-  return result;
+  return ids;
+}
+
+// --- ツリー表示 ---
+function getRoots(filterIds) {
+  // filterIds内で、親がfilterIds内にいない用語をルートとする
+  var roots = [];
+  for (var i = 0; i < data.terms.length; i++) {
+    var t = data.terms[i];
+    if (!filterIds[t.id]) continue;
+    var hasVisibleParent = false;
+    for (var p = 0; p < t.parents.length; p++) {
+      if (filterIds[t.parents[p]]) { hasVisibleParent = true; break; }
+    }
+    if (!hasVisibleParent) roots.push(t);
+  }
+  roots.sort(function(a, b) { return a.name.localeCompare(b.name); });
+  return roots;
+}
+
+function getFilteredChildren(parentId, filterIds) {
+  var children = [];
+  for (var i = 0; i < data.terms.length; i++) {
+    var t = data.terms[i];
+    if (filterIds[t.id] && t.parents.indexOf(parentId) !== -1) children.push(t);
+  }
+  children.sort(function(a, b) { return a.name.localeCompare(b.name); });
+  return children;
 }
 
 function renderTermList() {
-  var list = document.getElementById('term-list');
-  list.innerHTML = '';
-  var terms = filteredTerms();
-  for (var i = 0; i < terms.length; i++) {
-    var t = terms[i];
-    var col = '#' + categoryColor(t.category, data.categories).toString(16).padStart(6, '0');
-    var div = document.createElement('div');
-    div.className = 'term-item' + (t.id === selectedId ? ' selected' : '');
-    div.innerHTML = '<span class="term-dot" style="background:' + col + '"></span><span class="term-name">' + esc(t.name) + '</span>';
-    div.setAttribute('data-id', t.id);
-    div.addEventListener('click', function() { selectTerm(this.getAttribute('data-id')); });
-    list.appendChild(div);
+  var list = document.getElementById('term-list'); list.innerHTML = '';
+  var filterIds = filteredTermIds();
+  var roots = getRoots(filterIds);
+  for (var i = 0; i < roots.length; i++) {
+    renderTreeNode(list, roots[i], 0, filterIds);
   }
 }
 
+function renderTreeNode(container, term, depth, filterIds) {
+  var children = getFilteredChildren(term.id, filterIds);
+  var hasChildren = children.length > 0;
+  var isCollapsed = !!collapsedNodes[term.id];
+  var col = '#' + categoryColor(term.category, data.categories).toString(16).padStart(6, '0');
+
+  var div = document.createElement('div');
+  div.className = 'tree-item' + (term.id === selectedId ? ' selected' : '');
+  div.style.paddingLeft = (8 + depth * 18) + 'px';
+
+  var toggleSpan = document.createElement('span');
+  toggleSpan.className = 'tree-toggle';
+  if (hasChildren) {
+    toggleSpan.textContent = isCollapsed ? '\u25B6' : '\u25BC';
+    toggleSpan.setAttribute('data-id', term.id);
+    toggleSpan.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var tid = this.getAttribute('data-id');
+      collapsedNodes[tid] = !collapsedNodes[tid];
+      renderTermList();
+    });
+  }
+  div.appendChild(toggleSpan);
+
+  var dot = document.createElement('span'); dot.className = 'tree-dot'; dot.style.background = col; div.appendChild(dot);
+  var nameSpan = document.createElement('span'); nameSpan.className = 'tree-name'; nameSpan.textContent = term.name; div.appendChild(nameSpan);
+  div.setAttribute('data-id', term.id);
+  div.addEventListener('click', function() { selectTerm(this.getAttribute('data-id')); });
+  container.appendChild(div);
+
+  if (hasChildren && !isCollapsed) {
+    for (var i = 0; i < children.length; i++) {
+      renderTreeNode(container, children[i], depth + 1, filterIds);
+    }
+  }
+}
+
+// --- 詳細パネル ---
 function selectTerm(id) {
   selectedId = id;
   var t = findTerm(id);
   if (!t) { closeDetail(); return; }
-
   document.getElementById('detail-name').value = t.name;
   document.getElementById('detail-definition').value = t.definition;
 
-  var sel = document.getElementById('detail-category-select');
-  sel.innerHTML = '';
-  for (var i = 0; i < data.categories.length; i++) {
-    var opt = document.createElement('option');
-    opt.value = data.categories[i];
-    opt.textContent = data.categories[i];
-    sel.appendChild(opt);
-  }
-  var newOpt = document.createElement('option');
-  newOpt.value = '__new__';
-  newOpt.textContent = '+ 新しいカテゴリ';
-  sel.appendChild(newOpt);
+  var sel = document.getElementById('detail-category-select'); sel.innerHTML = '';
+  for (var i = 0; i < data.categories.length; i++) { var opt = document.createElement('option'); opt.value = data.categories[i]; opt.textContent = data.categories[i]; sel.appendChild(opt); }
+  var newOpt = document.createElement('option'); newOpt.value = '__new__'; newOpt.textContent = '+ 新しいカテゴリ'; sel.appendChild(newOpt);
   sel.value = t.category;
+  var newInput = document.getElementById('new-category-input'); newInput.style.display = 'none'; newInput.value = '';
+  sel.onchange = function() { newInput.style.display = sel.value === '__new__' ? 'block' : 'none'; };
 
-  var newInput = document.getElementById('new-category-input');
-  newInput.style.display = 'none';
-  newInput.value = '';
-  sel.onchange = function() {
-    newInput.style.display = sel.value === '__new__' ? 'block' : 'none';
-  };
-
+  renderParentTags(t);
+  renderAddParentSelect(t);
   renderRelatedTags(t);
   renderAddRelatedSelect(t);
   document.getElementById('detail-panel').classList.add('visible');
@@ -700,22 +588,52 @@ function selectTerm(id) {
   renderTermList();
 }
 
+function renderParentTags(t) {
+  var box = document.getElementById('parent-tags'); box.innerHTML = '';
+  for (var i = 0; i < t.parents.length; i++) {
+    var pid = t.parents[i]; var pt = findTerm(pid); if (!pt) continue;
+    var tag = document.createElement('span'); tag.className = 'parent-tag'; tag.setAttribute('data-rid', pid);
+    tag.innerHTML = esc(pt.name) + '<span class="remove-btn" data-rid="' + escAttr(pid) + '">&times;</span>';
+    (function(myPid) {
+      tag.querySelector('.remove-btn').addEventListener('click', function(e) { e.stopPropagation(); removeParent(selectedId, myPid); });
+      tag.addEventListener('click', function() { selectTerm(myPid); });
+    })(pid);
+    box.appendChild(tag);
+  }
+}
+
+function renderAddParentSelect(t) {
+  var sel = document.getElementById('add-parent-select');
+  sel.innerHTML = '<option value="">+ 親用語を追加</option>';
+  for (var i = 0; i < data.terms.length; i++) {
+    var ot = data.terms[i];
+    if (ot.id === t.id || t.parents.indexOf(ot.id) !== -1) continue;
+    var opt = document.createElement('option'); opt.value = ot.id; opt.textContent = ot.name; sel.appendChild(opt);
+  }
+  sel.onchange = function() { if (!sel.value) return; addParent(selectedId, sel.value); sel.value = ''; };
+}
+
+function addParent(childId, parentId) {
+  if (wouldCreateCycle(childId, parentId)) { toast('循環が発生するため追加できません'); return; }
+  var t = findTerm(childId); if (!t) return;
+  if (t.parents.indexOf(parentId) === -1) t.parents.push(parentId);
+  saveToLocalStorage(); buildScene(); selectTerm(childId);
+}
+
+function removeParent(childId, parentId) {
+  var t = findTerm(childId); if (!t) return;
+  t.parents = t.parents.filter(function(p) { return p !== parentId; });
+  saveToLocalStorage(); buildScene(); selectTerm(childId);
+}
+
 function renderRelatedTags(t) {
-  var box = document.getElementById('related-tags');
-  box.innerHTML = '';
+  var box = document.getElementById('related-tags'); box.innerHTML = '';
   for (var i = 0; i < t.related.length; i++) {
-    var rid = t.related[i];
-    var rt = findTerm(rid);
-    if (!rt) continue;
-    var tag = document.createElement('span');
-    tag.className = 'related-tag';
-    tag.setAttribute('data-rid', rid);
-    tag.innerHTML = esc(rt.name) + '<span class="remove-rel" data-rid="' + escAttr(rid) + '">&times;</span>';
+    var rid = t.related[i]; var rt = findTerm(rid); if (!rt) continue;
+    var tag = document.createElement('span'); tag.className = 'related-tag'; tag.setAttribute('data-rid', rid);
+    tag.innerHTML = esc(rt.name) + '<span class="remove-btn" data-rid="' + escAttr(rid) + '">&times;</span>';
     (function(myRid) {
-      tag.querySelector('.remove-rel').addEventListener('click', function(e) {
-        e.stopPropagation();
-        removeRelated(selectedId, myRid);
-      });
+      tag.querySelector('.remove-btn').addEventListener('click', function(e) { e.stopPropagation(); removeRelated(selectedId, myRid); });
       tag.addEventListener('click', function() { selectTerm(myRid); });
     })(rid);
     box.appendChild(tag);
@@ -726,82 +644,33 @@ function renderAddRelatedSelect(t) {
   var sel = document.getElementById('add-related-select');
   sel.innerHTML = '<option value="">+ 関連用語を追加</option>';
   for (var i = 0; i < data.terms.length; i++) {
-    var ot = data.terms[i];
-    if (ot.id === t.id || t.related.indexOf(ot.id) !== -1) continue;
-    var opt = document.createElement('option');
-    opt.value = ot.id;
-    opt.textContent = ot.name;
-    sel.appendChild(opt);
+    var ot = data.terms[i]; if (ot.id === t.id || t.related.indexOf(ot.id) !== -1) continue;
+    var opt = document.createElement('option'); opt.value = ot.id; opt.textContent = ot.name; sel.appendChild(opt);
   }
-  sel.onchange = function() {
-    if (!sel.value) return;
-    addRelated(selectedId, sel.value);
-    sel.value = '';
-  };
+  sel.onchange = function() { if (!sel.value) return; addRelated(selectedId, sel.value); sel.value = ''; };
 }
 
 function addRelated(id, rid) {
-  var t = findTerm(id);
-  var rt = findTerm(rid);
-  if (!t || !rt) return;
+  var t = findTerm(id); var rt = findTerm(rid); if (!t || !rt) return;
   if (t.related.indexOf(rid) === -1) t.related.push(rid);
   if (rt.related.indexOf(id) === -1) rt.related.push(id);
-  saveToLocalStorage();
-  buildScene();
-  selectTerm(id);
+  saveToLocalStorage(); buildScene(); selectTerm(id);
 }
 
 function removeRelated(id, rid) {
-  var t = findTerm(id);
-  var rt = findTerm(rid);
+  var t = findTerm(id); var rt = findTerm(rid);
   if (t) t.related = t.related.filter(function(r) { return r !== rid; });
   if (rt) rt.related = rt.related.filter(function(r) { return r !== id; });
-  saveToLocalStorage();
-  buildScene();
-  selectTerm(id);
+  saveToLocalStorage(); buildScene(); selectTerm(id);
 }
 
-function closeDetail() {
-  selectedId = null;
-  document.getElementById('detail-panel').classList.remove('visible');
-  buildScene();
-  renderTermList();
-}
-
-function highlightNode(id) {
-  unhighlightAll();
-  var entry = nodeMap.get(id);
-  if (!entry) return;
-  entry.mesh.material.emissiveIntensity = 0.8;
-  entry.mesh.scale.setScalar(1.4);
-  var t = findTerm(id);
-  if (t) {
-    for (var i = 0; i < t.related.length; i++) {
-      var re = nodeMap.get(t.related[i]);
-      if (re) {
-        re.mesh.material.emissiveIntensity = 0.5;
-        re.mesh.scale.setScalar(1.2);
-      }
-    }
-  }
-}
-
-function unhighlightAll() {
-  nodeMap.forEach(function(entry) {
-    entry.mesh.material.emissiveIntensity = 0.25;
-    entry.mesh.scale.setScalar(1.0);
-  });
-}
+function closeDetail() { selectedId = null; document.getElementById('detail-panel').classList.remove('visible'); buildScene(); renderTermList(); }
 
 // --- CRUD ---
 function saveTerm() {
-  var t = findTerm(selectedId);
-  if (!t) return;
+  var t = findTerm(selectedId); if (!t) return;
   var name = document.getElementById('detail-name').value.trim();
-  if (!name) {
-    toast('用語名を入力してください');
-    return;
-  }
+  if (!name) { toast('用語名を入力してください'); return; }
   t.name = name;
   t.definition = document.getElementById('detail-definition').value.trim();
   var sel = document.getElementById('detail-category-select');
@@ -809,155 +678,80 @@ function saveTerm() {
     var newCat = document.getElementById('new-category-input').value.trim();
     if (newCat && data.categories.indexOf(newCat) === -1) data.categories.push(newCat);
     t.category = newCat || t.category;
-  } else {
-    t.category = sel.value;
-  }
-  cleanupCategories();
-  saveToLocalStorage();
-  buildScene();
-  renderCategoryFilter();
-  selectTerm(t.id);
-  toast('保存しました');
+  } else { t.category = sel.value; }
+  cleanupCategories(); saveToLocalStorage(); buildScene(); renderCategoryFilter(); selectTerm(t.id); toast('保存しました');
 }
 
 function addTerm() {
-  var id = nextId();
-  var cat = data.categories[0] || '未分類';
+  var id = nextId(); var cat = data.categories[0] || '未分類';
   if (data.categories.indexOf(cat) === -1) data.categories.push(cat);
-  data.terms.push({ id: id, name: '新しい用語', definition: '', category: cat, related: [] });
-  saveToLocalStorage();
-  buildScene();
-  renderCategoryFilter();
-  renderTermList();
-  selectTerm(id);
-  toast('用語を追加しました');
+  data.terms.push({ id: id, name: '新しい用語', definition: '', category: cat, parents: [], related: [] });
+  saveToLocalStorage(); buildScene(); renderCategoryFilter(); renderTermList(); selectTerm(id); toast('用語を追加しました');
 }
 
 function deleteTerm() {
-  if (!selectedId) return;
-  if (!confirm('この用語を削除しますか？')) return;
+  if (!selectedId) return; if (!confirm('この用語を削除しますか？')) return;
   var delId = selectedId;
   for (var i = 0; i < data.terms.length; i++) {
     data.terms[i].related = data.terms[i].related.filter(function(r) { return r !== delId; });
+    data.terms[i].parents = data.terms[i].parents.filter(function(p) { return p !== delId; });
   }
   data.terms = data.terms.filter(function(t) { return t.id !== delId; });
-  cleanupCategories();
-  saveToLocalStorage();
-  closeDetail();
-  buildScene();
-  renderCategoryFilter();
-  renderTermList();
-  toast('削除しました');
+  cleanupCategories(); saveToLocalStorage(); closeDetail(); buildScene(); renderCategoryFilter(); renderTermList(); toast('削除しました');
 }
 
 function cleanupCategories() {
-  var used = {};
-  for (var i = 0; i < data.terms.length; i++) used[data.terms[i].category] = true;
+  var used = {}; for (var i = 0; i < data.terms.length; i++) used[data.terms[i].category] = true;
   data.categories = data.categories.filter(function(c) { return used[c]; });
 }
 
 // --- 自己書き換えHTML保存 ---
 function saveToHtml() {
   var fullHtml = document.documentElement.outerHTML;
-  var startMarker = '<!--==GLOSSARY_DATA_START==-->';
-  var endMarker = '<!--==GLOSSARY_DATA_END==-->';
-  var startIdx = fullHtml.indexOf(startMarker);
-  var endIdx = fullHtml.indexOf(endMarker);
-
-  if (startIdx === -1 || endIdx === -1) {
-    toast('HTML構造が壊れています');
-    return;
-  }
-
-  var newDataBlock = startMarker + '\n<script type="application/json" id="embedded-data">\n' +
-    JSON.stringify(data, null, 2) +
-    '\n<\/script>\n' + endMarker;
-
-  var newHtml = '<!DOCTYPE html>\n<html lang="ja">\n' +
-    fullHtml.substring(fullHtml.indexOf('<head>'), startIdx) +
-    newDataBlock +
-    fullHtml.substring(endIdx + endMarker.length);
-
-  var blob = new Blob([newHtml], { type: 'text/html' });
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'index.html';
-  a.click();
-  URL.revokeObjectURL(a.href);
-
-  savedVersion = currentVersion;
-  updateUnsavedDot();
-  toast('ダウンロードしました — 元のindex.htmlに上書きしてください');
+  var startMarker = '<!--==GLOSSARY_DATA_START==-->'; var endMarker = '<!--==GLOSSARY_DATA_END==-->';
+  var startIdx = fullHtml.indexOf(startMarker); var endIdx = fullHtml.indexOf(endMarker);
+  if (startIdx === -1 || endIdx === -1) { toast('HTML構造が壊れています'); return; }
+  var newDataBlock = startMarker + '\n<script type="application/json" id="embedded-data">\n' + JSON.stringify(data, null, 2) + '\n<\/script>\n' + endMarker;
+  var newHtml = '<!DOCTYPE html>\n<html lang="ja">\n' + fullHtml.substring(fullHtml.indexOf('<head>'), startIdx) + newDataBlock + fullHtml.substring(endIdx + endMarker.length);
+  var blob = new Blob([newHtml], { type: 'text/html' }); var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'index.html'; a.click(); URL.revokeObjectURL(a.href);
+  savedVersion = currentVersion; updateUnsavedDot(); toast('ダウンロードしました — 元のindex.htmlに上書きしてください');
 }
 
 // --- JSONインポート ---
-function importJSON() {
-  document.getElementById('file-input').click();
-}
-
+function importJSON() { document.getElementById('file-input').click(); }
 document.getElementById('file-input').addEventListener('change', function(e) {
-  var file = e.target.files[0];
-  if (!file) return;
+  var file = e.target.files[0]; if (!file) return;
   var reader = new FileReader();
   reader.onload = function(ev) {
     try {
       var imported = validateData(JSON.parse(ev.target.result));
-      if (imported && imported.terms.length > 0) {
-        data = imported;
-        saveToLocalStorage();
-        closeDetail();
-        buildScene();
-        renderCategoryFilter();
-        renderTermList();
-        toast(file.name + ' を読み込みました（' + data.terms.length + '件）');
-      } else {
-        toast('有効な用語データがありません');
-      }
-    } catch(err) {
-      toast('JSONの読み込みに失敗しました');
-    }
+      if (imported && imported.terms.length > 0) { data = imported; saveToLocalStorage(); closeDetail(); buildScene(); renderCategoryFilter(); renderTermList(); toast(file.name + ' を読み込みました（' + data.terms.length + '件）'); }
+      else { toast('有効な用語データがありません'); }
+    } catch(err) { toast('JSONの読み込みに失敗しました'); }
   };
-  reader.readAsText(file);
-  e.target.value = '';
+  reader.readAsText(file); e.target.value = '';
 });
 
 // --- JSONエクスポート ---
 function exportJSON() {
-  var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'glossary.json';
-  a.click();
-  URL.revokeObjectURL(a.href);
+  var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }); var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'glossary.json'; a.click(); URL.revokeObjectURL(a.href);
   toast('glossary.json をエクスポートしました');
 }
 
 // --- Excel読込 ---
-// 期待する列: 用語名 | 定義 | カテゴリ | 関連用語
-// ヘッダ行の列名で自動マッピング。関連用語はカンマ区切りの用語名。
-function importExcel() {
-  document.getElementById('excel-input').click();
-}
-
+function importExcel() { document.getElementById('excel-input').click(); }
 var COLUMN_MAP = {
   name:       ['用語名', '用語', 'name', 'term', '名前', '名称'],
   definition: ['定義', '説明', 'definition', 'description', '意味'],
   category:   ['カテゴリ', '分類', 'category', 'cat', 'グループ'],
+  parents:    ['親用語', '親', 'parent', 'parents', '上位'],
   related:    ['関連用語', '関連', 'related', '関連語']
 };
-
 function detectColumns(headers) {
   var map = {};
-  for (var key in COLUMN_MAP) {
-    var aliases = COLUMN_MAP[key];
-    for (var i = 0; i < headers.length; i++) {
-      var h = String(headers[i]).trim().toLowerCase();
-      for (var j = 0; j < aliases.length; j++) {
-        if (h === aliases[j].toLowerCase()) {
-          map[key] = i;
-          break;
-        }
-      }
+  for (var key in COLUMN_MAP) { var aliases = COLUMN_MAP[key];
+    for (var i = 0; i < headers.length; i++) { var h = String(headers[i]).trim().toLowerCase();
+      for (var j = 0; j < aliases.length; j++) { if (h === aliases[j].toLowerCase()) { map[key] = i; break; } }
       if (map[key] !== undefined) break;
     }
   }
@@ -965,8 +759,7 @@ function detectColumns(headers) {
 }
 
 document.getElementById('excel-input').addEventListener('change', function(e) {
-  var file = e.target.files[0];
-  if (!file) return;
+  var file = e.target.files[0]; if (!file) return;
   var reader = new FileReader();
   reader.onload = function(ev) {
     try {
@@ -974,125 +767,68 @@ document.getElementById('excel-input').addEventListener('change', function(e) {
       var ws = wb.Sheets[wb.SheetNames[0]];
       var rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
       if (rows.length < 2) { toast('データが空です'); return; }
+      var colMap = detectColumns(rows[0]);
+      if (colMap.name === undefined) { toast('「用語名」列が見つかりません'); return; }
 
-      var headers = rows[0];
-      var colMap = detectColumns(headers);
-
-      if (colMap.name === undefined) {
-        toast('「用語名」列が見つかりません。ヘッダ行を確認してください。');
-        return;
-      }
-
-      // 1パス目: 用語を作成（ID自動採番）
-      var terms = [];
-      var nameToId = {};
-      var idCounter = 0;
+      var terms = []; var nameToId = {}; var idCounter = 0;
       for (var i = 1; i < rows.length; i++) {
-        var row = rows[i];
-        var name = String(row[colMap.name] || '').trim();
-        if (!name) continue;
-        idCounter++;
-        var id = 't' + String(idCounter).padStart(3, '0');
+        var row = rows[i]; var name = String(row[colMap.name] || '').trim(); if (!name) continue;
+        idCounter++; var id = 't' + String(idCounter).padStart(3, '0');
         nameToId[name] = id;
-        terms.push({
-          id: id,
-          name: name,
+        terms.push({ id: id, name: name,
           definition: colMap.definition !== undefined ? String(row[colMap.definition] || '').trim() : '',
           category: colMap.category !== undefined ? (String(row[colMap.category] || '').trim() || '未分類') : '未分類',
-          related: [],
+          parents: [], related: [],
+          _rawParents: colMap.parents !== undefined ? String(row[colMap.parents] || '').trim() : '',
           _rawRelated: colMap.related !== undefined ? String(row[colMap.related] || '').trim() : ''
         });
       }
-
-      // 2パス目: 関連用語を名前からIDに変換
+      // 名前→ID変換
       for (var k = 0; k < terms.length; k++) {
-        var raw = terms[k]._rawRelated;
-        delete terms[k]._rawRelated;
-        if (!raw) continue;
-        var names = raw.split(/[,、\s]+/);
-        for (var m = 0; m < names.length; m++) {
-          var rname = names[m].trim();
-          if (rname && nameToId[rname] && nameToId[rname] !== terms[k].id) {
-            terms[k].related.push(nameToId[rname]);
-          }
+        // 親
+        if (terms[k]._rawParents) {
+          var pnames = terms[k]._rawParents.split(/[,、\s]+/);
+          for (var m = 0; m < pnames.length; m++) { var pn = pnames[m].trim(); if (pn && nameToId[pn] && nameToId[pn] !== terms[k].id) terms[k].parents.push(nameToId[pn]); }
         }
+        delete terms[k]._rawParents;
+        // 関連
+        if (terms[k]._rawRelated) {
+          var rnames = terms[k]._rawRelated.split(/[,、\s]+/);
+          for (var m = 0; m < rnames.length; m++) { var rn = rnames[m].trim(); if (rn && nameToId[rn] && nameToId[rn] !== terms[k].id) terms[k].related.push(nameToId[rn]); }
+        }
+        delete terms[k]._rawRelated;
       }
-
-      // 双方向に関連を設定
+      // 関連を双方向に
       for (var k = 0; k < terms.length; k++) {
         for (var r = 0; r < terms[k].related.length; r++) {
           var rid = terms[k].related[r];
-          var rt = null;
-          for (var f = 0; f < terms.length; f++) {
-            if (terms[f].id === rid) { rt = terms[f]; break; }
-          }
-          if (rt && rt.related.indexOf(terms[k].id) === -1) {
-            rt.related.push(terms[k].id);
-          }
+          for (var f = 0; f < terms.length; f++) { if (terms[f].id === rid && terms[f].related.indexOf(terms[k].id) === -1) terms[f].related.push(terms[k].id); }
         }
       }
-
-      // カテゴリ一覧
-      var catSet = {};
-      for (var k = 0; k < terms.length; k++) catSet[terms[k].category] = true;
-
+      var catSet = {}; for (var k = 0; k < terms.length; k++) catSet[terms[k].category] = true;
       data = { terms: terms, categories: Object.keys(catSet) };
-      saveToLocalStorage();
-      closeDetail();
-      buildScene();
-      renderCategoryFilter();
-      renderTermList();
+      saveToLocalStorage(); closeDetail(); buildScene(); renderCategoryFilter(); renderTermList();
       toast(file.name + ' から ' + terms.length + '件読み込みました');
-    } catch(err) {
-      console.error(err);
-      toast('Excelの読み込みに失敗しました');
-    }
+    } catch(err) { console.error(err); toast('Excelの読み込みに失敗しました'); }
   };
-  reader.readAsArrayBuffer(file);
-  e.target.value = '';
+  reader.readAsArrayBuffer(file); e.target.value = '';
 });
 
-function toast(msg) {
-  var el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  setTimeout(function() { el.classList.remove('show'); }, 3000);
-}
+function toast(msg) { var el = document.getElementById('toast'); el.textContent = msg; el.classList.add('show'); setTimeout(function() { el.classList.remove('show'); }, 3000); }
 
-// --- クリック vs ドラッグ判別 ---
-var pointerDownPos = { x: 0, y: 0 };
-var DRAG_THRESHOLD = 5;
-
-window.addEventListener('pointerdown', function(e) {
-  pointerDownPos.x = e.clientX;
-  pointerDownPos.y = e.clientY;
-});
-
+// --- クリック vs ドラッグ ---
+var pointerDownPos = { x: 0, y: 0 }; var DRAG_THRESHOLD = 5;
+window.addEventListener('pointerdown', function(e) { pointerDownPos.x = e.clientX; pointerDownPos.y = e.clientY; });
 window.addEventListener('pointerup', function(e) {
   if (e.target.closest('#sidebar') || e.target.closest('#detail-panel') || e.target.closest('#toolbar') || e.target.closest('#sidebar-toggle') || e.target.closest('#sync-banner')) return;
-
-  var dx = e.clientX - pointerDownPos.x;
-  var dy = e.clientY - pointerDownPos.y;
-  if (Math.sqrt(dx * dx + dy * dy) > DRAG_THRESHOLD) return; // ドラッグ中はノード選択しない
-
-  pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
-  pointer.y = -(e.clientY / window.innerHeight) * 2 + 1;
-  raycaster.setFromCamera(pointer, camera);
-  var hits = raycaster.intersectObjects(nodeGroup.children);
-  if (hits.length > 0 && hits[0].object.userData.id) {
-    selectTerm(hits[0].object.userData.id);
-  }
+  var dx = e.clientX - pointerDownPos.x; var dy = e.clientY - pointerDownPos.y;
+  if (Math.sqrt(dx * dx + dy * dy) > DRAG_THRESHOLD) return;
+  pointer.x = (e.clientX / window.innerWidth) * 2 - 1; pointer.y = -(e.clientY / window.innerHeight) * 2 + 1;
+  raycaster.setFromCamera(pointer, camera); var hits = raycaster.intersectObjects(nodeGroup.children);
+  if (hits.length > 0 && hits[0].object.userData.id) selectTerm(hits[0].object.userData.id);
 });
-
-window.addEventListener('resize', function() {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-});
-
-window.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') closeDetail();
-});
+window.addEventListener('resize', function() { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
+window.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeDetail(); });
 
 document.getElementById('btn-save').addEventListener('click', saveTerm);
 document.getElementById('btn-delete').addEventListener('click', deleteTerm);
@@ -1103,53 +839,18 @@ document.getElementById('btn-file-import').addEventListener('click', importJSON)
 document.getElementById('btn-json-export').addEventListener('click', exportJSON);
 document.getElementById('btn-excel-import').addEventListener('click', importExcel);
 document.getElementById('search-box').addEventListener('input', renderTermList);
-document.getElementById('btn-collapse').addEventListener('click', function() {
-  document.getElementById('sidebar').classList.add('collapsed');
-});
-document.getElementById('sidebar-toggle').addEventListener('click', function() {
-  document.getElementById('sidebar').classList.remove('collapsed');
-});
-
-// 同期バナー
-document.getElementById('btn-use-local').addEventListener('click', function() {
-  document.getElementById('sync-banner').style.display = 'none';
-  // data は既にlocalStorageのデータ
-  buildScene();
-  renderCategoryFilter();
-  renderTermList();
-});
+document.getElementById('btn-collapse').addEventListener('click', function() { document.getElementById('sidebar').classList.add('collapsed'); });
+document.getElementById('sidebar-toggle').addEventListener('click', function() { document.getElementById('sidebar').classList.remove('collapsed'); });
+document.getElementById('btn-use-local').addEventListener('click', function() { document.getElementById('sync-banner').style.display = 'none'; buildScene(); renderCategoryFilter(); renderTermList(); });
 document.getElementById('btn-use-embedded').addEventListener('click', function() {
   document.getElementById('sync-banner').style.display = 'none';
   var embedded = validateData(getEmbeddedData());
-  if (embedded) {
-    data = embedded;
-    currentVersion = 0;
-    savedVersion = 0;
-    saveToLocalStorage();
-    buildScene();
-    renderCategoryFilter();
-    renderTermList();
-  }
+  if (embedded) { data = embedded; currentVersion = 0; savedVersion = 0; saveToLocalStorage(); buildScene(); renderCategoryFilter(); renderTermList(); }
 });
 
-// --- アニメーション ---
-function animate() {
-  requestAnimationFrame(animate);
-  controls.update();
-  for (var i = 0; i < labelGroup.children.length; i++) {
-    labelGroup.children[i].lookAt(camera.position);
-  }
-  renderer.render(scene, camera);
-}
+function animate() { requestAnimationFrame(animate); controls.update(); for (var i = 0; i < labelGroup.children.length; i++) labelGroup.children[i].lookAt(camera.position); renderer.render(scene, camera); }
 
-// --- 起動 ---
-loadData();
-buildScene();
-renderCategoryFilter();
-renderTermList();
-updateUnsavedDot();
-animate();
-
+loadData(); buildScene(); renderCategoryFilter(); renderTermList(); updateUnsavedDot(); animate();
 } // end initApp
 </script>
 </body>
